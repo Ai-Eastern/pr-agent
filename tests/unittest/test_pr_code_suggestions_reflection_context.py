@@ -38,13 +38,14 @@ async def test_reflection_receives_captured_context_as_untrusted_user_data(conte
     assert "suggestion_score" in call["system"]
 
 
-@pytest.mark.parametrize("captured", [{}, {"extra_instructions": ""}, {"extra_instructions": None}])
+@pytest.mark.parametrize("captured", [None, {}, {"extra_instructions": ""}, {"extra_instructions": None}])
 async def test_reflection_empty_context_preserves_prompt(captured):
     from jinja2 import StrictUndefined
     from jinja2.sandbox import SandboxedEnvironment
 
     tool = PRCodeSuggestions.__new__(PRCodeSuggestions)
-    tool.vars = captured
+    if captured is not None:
+        tool.vars = captured
     tool.git_provider = SimpleNamespace(pr=None)
     tool.ai_handler = SimpleNamespace(chat_completion=AsyncMock(return_value=("unchanged", "stop")))
     suggestions = [{"suggestion_content": "Preserve the boundary"}]
